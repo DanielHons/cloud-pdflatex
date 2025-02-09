@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: PDF creator
+  version: 1.0.0
+paths:
+  /convert:
+    post:
+      summary: Konvertiert eine .tag.gzip-Datei in ein PDF.
+      parameters:
+        - in: query
+          name: tex-entrypoint
+          schema:
+            type: string
+            default: main.tex
+            description: "The main tex file to execute the converter on"
+
+      requestBody:
+        description: Eine .tar.gzip-Datei als binäre Daten.
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Erfolgreich konvertiertes PDF.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              description: Used only with `application/pdf` responses.
+              example: attachment; filename="name.pdf"
+        '400':
+          description: Ungültiger Input.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonError"
+        '500':
+          description: Serverinterner Fehler.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonError"
+components:
+  schemas:
+    JsonError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Ungültige Datei oder Konvertierungsfehler."

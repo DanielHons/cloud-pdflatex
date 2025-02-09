@@ -1,0 +1,28 @@
+overlay: 1.0.0
+info:
+  title: "Example to indicate how to use the OpenAPI Overlay specification (https://github.com/OAI/Overlay-Specification)"
+  version: 1.0.0
+actions:
+  - target: "$"
+    description: Overlay adding a healthcheck endpoint
+    update:
+      info:
+        x-overlay-applied: structured-overlay
+      paths:
+        "/__heartbeat__":
+          get:
+            tags:
+              - Heardbeat
+            description: Healthcheck
+            responses:
+              200:
+                'description': Heaalthy
+              500:
+                'description': Unhealthy
+
+
+
+
+
+
+
