@@ -41,7 +41,7 @@ func UnGzipIntoFolder(r io.Reader, folder string) error {
 			if _, err := io.Copy(outFile, tarReader); err != nil {
 				return err
 			}
-			return outFile.Close()
+			_ = outFile.Close()
 
 		default:
 			return err

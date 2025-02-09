@@ -35,6 +35,9 @@ func (s serverImpl) PostConvert(
 	}
 
 	err = xgzip.UnGzipIntoFolder(request.Body, temp)
+	if err != nil {
+		return cloudpdf.PostConvert500JSONResponse{"Fehler beim Entpacken der Quelldaten"}, nil
+	}
 
 	mainFile := "main.tex"
 	if request.Params.TexEntrypoint != nil {
@@ -47,7 +50,7 @@ func (s serverImpl) PostConvert(
 	}
 	pdf, err := renderer.Render()
 	if err != nil {
-		return cloudpdf.PostConvert500JSONResponse{"Fehler beim Erstellen PDF"}, nil
+		return cloudpdf.PostConvert500JSONResponse{"Fehler beim Erstellen der PDF-Datei"}, nil
 	}
 
 	return cloudpdf.PostConvert200ApplicationpdfResponse{
