@@ -42,3 +42,10 @@ func main() {
 }
 
 ```
+
+
+## Create Docker Image
+```shell
+docker build -t danielhons.de/office/cloud-pdflatex:latest .
+
+```
