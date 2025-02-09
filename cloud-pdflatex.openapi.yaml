@@ -13,6 +13,7 @@ paths:
             type: string
             default: main.tex
             description: "The main tex file to execute the converter on"
+            required: true
 
       requestBody:
         description: Eine .tar.gzip-Datei als binäre Daten.

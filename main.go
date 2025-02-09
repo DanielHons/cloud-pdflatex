@@ -36,7 +36,12 @@ func (s serverImpl) PostConvert(
 
 	err = xgzip.UnGzipIntoFolder(request.Body, temp)
 
-	renderer, err := latex.NewFolderRenderer(temp, *request.Params.TexEntrypoint)
+	mainFile := "main.tex"
+	if request.Params.TexEntrypoint != nil {
+		mainFile = *request.Params.TexEntrypoint
+	}
+
+	renderer, err := latex.NewFolderRenderer(temp, mainFile)
 	if err != nil {
 		return cloudpdf.PostConvert500JSONResponse{"Fehler beim Erstellen des LaTeX Renderers"}, nil
 	}
