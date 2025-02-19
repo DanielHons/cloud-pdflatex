@@ -30,6 +30,7 @@ func (s serverImpl) PostConvert(
 ) (cloudpdf.PostConvertResponseObject, error) {
 
 	temp, err := os.MkdirTemp("/tmp", "pdfzip")
+	defer os.RemoveAll(temp)
 	if err != nil {
 		return cloudpdf.PostConvert500JSONResponse{"Fehler beim Anlegen des temporären Ordners"}, nil
 	}

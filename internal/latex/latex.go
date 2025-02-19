@@ -1,6 +1,7 @@
 package latex
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/spf13/viper"
@@ -9,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type TimeSheet struct {
@@ -163,13 +165,14 @@ func (r *Renderer) Render() ([]byte, error) {
 		return nil, err
 	}
 
-	// twice
-	command = r.pdfLaTeX()
-	err = command.Run()
-	if err != nil {
-		return nil, err
+	if viper.GetString("latex.command") != "pdflatexmk" {
+		// twice
+		command = r.pdfLaTeX()
+		err = command.Run()
+		if err != nil {
+			return nil, err
+		}
 	}
-
 	file, err := os.ReadFile(r.getTempPdfPath())
 	if err != nil {
 		return nil, err
@@ -179,8 +182,10 @@ func (r *Renderer) Render() ([]byte, error) {
 
 func (r *Renderer) pdfLaTeX() *exec.Cmd {
 	viper.SetDefault("latex.command", "pdflatex")
-	command := exec.Command(
-		viper.GetString("latex.command"), "-synctex=1", "-interaction=nonstopmode", filepath.Base(r.MainTexFile()),
+	timeout, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	command := exec.CommandContext(
+		timeout,
+		viper.GetString("latex.command"), "-synctex=1", "-interaction=batchmode", filepath.Base(r.MainTexFile()),
 	)
 	command.Stdout = r.TexConsoleWriter
 	command.Dir = r.renderDir
