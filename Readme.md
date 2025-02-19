@@ -6,7 +6,8 @@ A WebService tranforming a `.targ.gz` with latex sources to a pdf.
 
 API described at [cloud-pdflatex.openapi.yaml](cloud-pdflatex.openapi.yaml)
 
-### Example usage in Go
+### Example usage in Go - render PDF files with latex remotely
+
 ```Go
 package main
 
@@ -17,18 +18,21 @@ import (
 	"os"
 )
 
+
+
 func main() {
 	client, err := cloudpdf.NewClient("http://localhost:8081/")
 	if err != nil {
 		panic(err)
 	}
 
-	// should contain a main.tex and additional required resources, like images, lco-files,...
-	file, err := os.Open("sample.tar.gz") 
+	// should contain tex file(s) and additional required resources, like images, lco-files,...
+	file, err := os.Open("sample.tar.gz")
 	if err != nil {
 		panic(err)
 	}
-	body, err := client.PostConvertWithBody(context.TODO(), nil, "application/octed-stream", file)
+	entrypoint := cloudpdf.PostConvertParams("my-document.tex") // your main tex file, default is 'main.tex'
+	body, err := client.PostConvertWithBody(context.TODO(), &entrypoint, "application/octed-stream", file)
 	switch body.StatusCode {
 
 	}
