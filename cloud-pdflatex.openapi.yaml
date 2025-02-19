@@ -3,6 +3,16 @@ info:
   title: PDF creator
   version: 1.0.0
 paths:
+  "/__heartbeat__":
+    get:
+      tags:
+        - Heartbeat
+      description: Healthcheck
+      responses:
+        200:
+          'description': Heaalthy
+        500:
+          'description': Unhealthy
   /convert:
     post:
       summary: Konvertiert eine .tag.gzip-Datei in ein PDF.

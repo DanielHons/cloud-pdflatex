@@ -34,6 +34,6 @@ ENV CONF_LATEX_COMMAND="pdflatexmk"
 COPY --from=builder /build/app /app/server
 
 # Leaving user latex from parent image
-
+HEALTHCHECK --interval=1s --timeout=1s --start-period=2s --retries=3 CMD [ "/app/server","--healthcheck" ]
 # Define entrypoint and command
 ENTRYPOINT ["/app/server"]

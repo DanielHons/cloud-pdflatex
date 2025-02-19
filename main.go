@@ -99,7 +99,7 @@ func executeHealthCheck() {
 
 	req, err := http.NewRequest(
 		http.MethodGet,
-		fmt.Sprintf("http://localhost:%s/__lbhealthcheck__", viper.GetString("port")),
+		fmt.Sprintf("http://localhost:%s/__heartbeat__", viper.GetString("port")),
 		nil,
 	)
 	if err != nil {
@@ -115,6 +115,6 @@ func executeHealthCheck() {
 	if resp.StatusCode == 200 {
 		os.Exit(0)
 	} else {
-		os.Exit(1)
+		log.Fatal("healthcheck: Request failed: ", resp.StatusCode)
 	}
 }
