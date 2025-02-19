@@ -13,6 +13,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type serverImpl struct {
@@ -64,8 +65,20 @@ func (s serverImpl) PostConvert(
 var server cloudpdf.StrictServerInterface = &serverImpl{}
 
 func main() {
+
 	viper.SetDefault("port", "8080")
 	viper.AutomaticEnv()
+
+	for _, arg := range os.Args[1:] {
+		if arg == "--healthcheck" {
+			executeHealthCheck()
+		}
+
+	}
+	startServer()
+}
+
+func startServer() {
 	server := graceful.WithDefaults(
 		&http.Server{
 			Addr:    fmt.Sprintf(":%s", viper.GetString("port")),
@@ -77,4 +90,31 @@ func main() {
 		log.Fatalln("main: Failed to gracefully shutdown: ", err)
 	}
 	log.Println("main: Server was shutdown gracefully")
+}
+
+func executeHealthCheck() {
+	client := &http.Client{
+		Timeout: 1 * time.Second,
+	}
+
+	req, err := http.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("http://localhost:%s/__lbhealthcheck__", viper.GetString("port")),
+		nil,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("healthcheck: Request failed: ", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 200 {
+		os.Exit(0)
+	} else {
+		os.Exit(1)
+	}
 }
