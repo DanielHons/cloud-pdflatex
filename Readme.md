@@ -48,6 +48,39 @@ func main() {
 ```
 
 
+### Example using the included archiver for tar.gz creation
+
+```go
+package main
+
+import (
+	"context"
+	"github.com/DanielHons/cloud-pdflatex/pkg/cloudpdf"
+	"os"
+)
+
+func main() {
+	client, err := cloudpdf.NewClient("http://localhost:8081/")
+	if err != nil {
+		panic(err)
+	}
+
+	gz := cloudpdf.NewArchiver()
+
+	err = gz.AddFile("main.tex")
+	if err != nil {
+		panic(err)
+	}
+	pdf, err := gz.RenderPDF(context.TODO(), client)
+	if err != nil {
+		panic(err)
+	}
+	err = os.WriteFile("result.pdf", pdf, 0x660)
+}
+
+ ```
+
+
 ## Create Docker Image
 ```shell
 docker build -t danielhons.de/office/cloud-pdflatex:latest .
