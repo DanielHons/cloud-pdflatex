@@ -19,6 +19,8 @@ import (
 type serverImpl struct {
 }
 
+var server cloudpdf.StrictServerInterface = &serverImpl{}
+
 func (s serverImpl) GetHeartbeat(
 	ctx context.Context, request cloudpdf.GetHeartbeatRequestObject,
 ) (cloudpdf.GetHeartbeatResponseObject, error) {
@@ -61,8 +63,6 @@ func (s serverImpl) PostConvert(
 	}, nil
 
 }
-
-var server cloudpdf.StrictServerInterface = &serverImpl{}
 
 func main() {
 
