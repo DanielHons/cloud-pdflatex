@@ -35,12 +35,12 @@ func (s serverImpl) PostConvert(
 	temp, err := os.MkdirTemp("/tmp", "pdfzip")
 	defer os.RemoveAll(temp)
 	if err != nil {
-		return cloudpdf.PostConvert500JSONResponse{"Fehler beim Anlegen des temporären Ordners"}, nil
+		return cloudpdf.PostConvert500JSONResponse{Message: "Fehler beim Anlegen des temporären Ordners"}, nil
 	}
 
 	err = xgzip.UnGzipIntoFolder(request.Body, temp)
 	if err != nil {
-		return cloudpdf.PostConvert500JSONResponse{"Fehler beim Entpacken der Quelldaten"}, nil
+		return cloudpdf.PostConvert500JSONResponse{Message: "Fehler beim Entpacken der Quelldaten"}, nil
 	}
 
 	mainFile := "main.tex"
@@ -49,12 +49,16 @@ func (s serverImpl) PostConvert(
 	}
 
 	renderer, err := latex.NewFolderRenderer(temp, mainFile)
+	renderer.TexConsoleWriter = os.Stdout
 	if err != nil {
-		return cloudpdf.PostConvert500JSONResponse{"Fehler beim Erstellen des LaTeX Renderers"}, nil
+		return cloudpdf.PostConvert500JSONResponse{Message: "Fehler beim Erstellen des LaTeX Renderers"}, nil
 	}
 	pdf, err := renderer.Render()
+
 	if err != nil {
-		return cloudpdf.PostConvert500JSONResponse{"Fehler beim Erstellen der PDF-Datei"}, nil
+		return cloudpdf.PostConvert500JSONResponse{
+			Message: "Fehler beim Erstellen der PDF-Datei", TexLogs: renderer.LogOutput(),
+		}, nil
 	}
 
 	return cloudpdf.PostConvert200ApplicationpdfResponse{

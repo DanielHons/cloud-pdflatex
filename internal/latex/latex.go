@@ -35,6 +35,7 @@ type Renderer struct {
 	renderDir        string
 	texFile          *os.File
 	TexConsoleWriter io.Writer
+	texlog           string
 }
 
 func (r *Renderer) GetRenderDirectory() string {
@@ -82,8 +83,12 @@ func (r *Renderer) PdfDoesExist() bool {
 }
 
 func (r *Renderer) getTempPdfPath() string {
+	return r.getMainFileWithEnding("pdf")
+}
+
+func (r *Renderer) getMainFileWithEnding(ext string) string {
 	pdfPath := filepath.Join(
-		r.renderDir, strings.TrimSuffix(filepath.Base(r.MainTexFile()), filepath.Ext(r.MainTexFile()))+".pdf",
+		r.renderDir, strings.TrimSuffix(filepath.Base(r.MainTexFile()), filepath.Ext(r.MainTexFile()))+"."+ext,
 	)
 	return pdfPath
 }
@@ -147,13 +152,14 @@ func (r *Renderer) MakeFile(outFile string) error {
 	_, err := r.Render()
 	if r.PdfDoesExist() {
 		err = r.RenamePdfFile(outFile)
+		if err == nil {
+			return r.deleteTempRenderDirectory()
 
-	}
-	if err == nil {
-		return r.deleteTempRenderDirectory()
-
+		} else {
+			return errors.Join(errors.New(fmt.Sprintf("failed to move pdf, temp files kept at %s", r.renderDir)), err)
+		}
 	} else {
-		return errors.Join(errors.New(fmt.Sprintf("failed to move pdf, temp files kept at %s", r.renderDir)), err)
+		return errors.New("PDF was not created")
 	}
 
 }
@@ -161,18 +167,19 @@ func (r *Renderer) MakeFile(outFile string) error {
 func (r *Renderer) Render() ([]byte, error) {
 	command := r.pdfLaTeX()
 	err := command.Run()
+
+	if err == nil && viper.GetString("latex.command") != "pdflatexmk" {
+		// twice
+		command = r.pdfLaTeX()
+		err = command.Run()
+	}
+
+	logContent, _ := os.ReadFile(r.getMainFileWithEnding("log"))
+	r.texlog = string(logContent)
 	if err != nil {
 		return nil, err
 	}
 
-	if viper.GetString("latex.command") != "pdflatexmk" {
-		// twice
-		command = r.pdfLaTeX()
-		err = command.Run()
-		if err != nil {
-			return nil, err
-		}
-	}
 	file, err := os.ReadFile(r.getTempPdfPath())
 	if err != nil {
 		return nil, err
@@ -188,6 +195,11 @@ func (r *Renderer) pdfLaTeX() *exec.Cmd {
 		viper.GetString("latex.command"), "-synctex=1", "-interaction=batchmode", filepath.Base(r.MainTexFile()),
 	)
 	command.Stdout = r.TexConsoleWriter
+	command.Stderr = r.TexConsoleWriter
 	command.Dir = r.renderDir
 	return command
+}
+
+func (r *Renderer) LogOutput() *string {
+	return &r.texlog
 }

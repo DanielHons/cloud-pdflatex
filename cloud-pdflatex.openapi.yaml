@@ -58,3 +58,6 @@ components:
         message:
           type: string
           example: "Ungültige Datei oder Konvertierungsfehler."
+        texLogs:
+          type: string
+          description: Logs from latex
